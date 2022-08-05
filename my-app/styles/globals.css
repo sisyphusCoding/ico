@@ -1,0 +1,37 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body {
+  padding: 0;
+  margin: 0;
+  font-family: 'Poppins', sans-serif;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.thisButton{
+  @apply 
+  text-xs 
+  text-zinc-200
+  dark:text-zinc-400 
+  md:text-base
+  py-3
+  px-7
+  rounded-xl
+  bg-sky-500
+  transition-all ease-out duration-300
+  hover:bg-sky-700
+  hover:dark:bg-sky-700
+  dark:bg-sky-800;
+}
