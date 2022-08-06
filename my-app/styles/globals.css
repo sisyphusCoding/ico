@@ -27,11 +27,40 @@ a {
   dark:text-zinc-400 
   md:text-base
   py-3
-  px-7
+  px-5
   rounded-xl
   bg-sky-500
   transition-all ease-out duration-300
-  hover:bg-sky-700
-  hover:dark:bg-sky-700
-  dark:bg-sky-800;
+  relative
+  overflow-hidden
+  z-[1]
+  dark:bg-sky-800
+  shadow-[0_5px_15px_-7.5px_black]
+  ;
+}
+
+.thisButton:before{
+  @apply 
+  transition-transform ease-out-sine duration-700
+  bg-zinc-900 bg-opacity-20 dark:bg-opacity-20 dark:bg-zinc-400;
+  content:'';
+  height:100%;
+  z-index:-1;
+  width:100%;
+  top:0;
+  left:0;
+  position:absolute;
+  transform: scale(0,1) ;
+  transform-origin:right;
+}
+
+.thisButton:hover:before {
+  transform-origin:left;
+  transform: scale(1,1);
+  width:100%;
+}
+
+.thisNeo{
+  @apply shadow-[inset_5px_5px_15px_#b2b2b5,_inset_-5px_-5px_15px_#f6f6fb]
+    dark:shadow-[inset_5px_5px_15px_#101010,_inset_-5px_-5px_15px_#232328];
 }

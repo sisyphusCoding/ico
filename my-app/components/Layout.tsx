@@ -13,7 +13,7 @@ const Layout: NextPage<layoutProps> = ({ children }) => {
       text-zinc-700
       dark:text-zinc-400
       bg-zinc-300
-      dark:bg-[#141414]
+      dark:bg-zinc-900
       flex flex-col 
       items-center justify-center
       min-h-screen 
