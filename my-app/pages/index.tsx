@@ -1,4 +1,5 @@
 import Image from 'next/image'
+import { HiPlus, HiMinus } from 'react-icons/hi'
 import {
   ethers,
   providers,
@@ -10,7 +11,7 @@ import {
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import toast, { Toaster } from 'react-hot-toast'
 import Web3Modal from 'web3modal'
-import{BiPlug} from 'react-icons/bi'
+import { BiFace, BiPlug } from 'react-icons/bi'
 import {
   CONTRACT_ADDRESS,
   CONTRACT_ABI,
@@ -19,7 +20,8 @@ import {
 } from '../constants'
 import { sign } from 'crypto'
 import { walletconnect } from 'web3modal/dist/providers/connectors'
-import { AnimatePresence ,motion } from 'framer-motion'
+import { AnimatePresence, motion, Variants } from 'framer-motion'
+import { Console } from 'console'
 const Home = (): JSX.Element => {
   interface thisProvider extends providers.Web3Provider {
     getAddress(): Promise<string>
@@ -31,7 +33,7 @@ const Home = (): JSX.Element => {
 
   const [network, setNetwork] = useState('')
 
-  const [imageLoaded,setImageLoaded] = useState<boolean>(false)
+  const [imageLoaded, setImageLoaded] = useState<boolean>(false)
   if (typeof window !== 'undefined') {
     const provider = new ethers.providers.Web3Provider(window.ethereum, 'any')
     provider.on('network', (newNetwork, oldNetwork) => {
@@ -55,7 +57,10 @@ const Home = (): JSX.Element => {
 
   const [loading, setLoading] = useState<boolean>(false)
 
-  const [tokensToBeClaimed,setTokensToBeClaimed] = useState<any>(zero)
+  const [tokensToBeClaimed, setTokensToBeClaimed] = useState<any>(zero)
+
+
+  const [isOwner,setIsOwner] = useState<boolean>(false)
 
   const web3ModalRef = useRef<Web3Modal>()
 
@@ -101,17 +106,17 @@ const Home = (): JSX.Element => {
         providerOptions: {},
         disableInjectedProvider: false
       })
-      connectWallet()      
-       getBalanceOfCryptoDevTokens()
-       getTotalTokensMinted()
-       getTokensToBeClaimed()
+      connectWallet()
+      getBalanceOfCryptoDevTokens()
+      getTotalTokensMinted()
+      getTokensToBeClaimed()
+      withdrawCoins()
     }
   }, [walletConnected])
 
-
-  const getTokensToBeClaimed = async() => {
-    try{
-        const provider = await getProviderOrSigner()
+  const getTokensToBeClaimed = async () => {
+    try {
+      const provider = await getProviderOrSigner()
 
       const nftContract = new Contract(
         NFT_CONTRACT_ADDRESS,
@@ -123,35 +128,32 @@ const Home = (): JSX.Element => {
 
       const address = await signer.getAddress()
       const balance = await nftContract.balanceOf(address)
-
+      console.log(balance)
       const tokenContract = new Contract(
         NFT_CONTRACT_ADDRESS,
         NFT_CONTRACT_ABI,
         provider
       )
 
-      if(balance ===zero){
-        setTokensMinted(zero)
-      }else{
+      if (balance === zero) {
+        setTokensToBeClaimed(zero)
+      } else {
+        var amount = 0
 
-
-        var amount = 0;
-
-        for(var i =0;i<balance;i++){
-
-          const tokenId = await nftContract.tokenOfOwnerByIndex(address,i)
+        for (var i = 0; i < balance; i++) {
+          const tokenId = await nftContract.tokenOfOwnerByIndex(address, i)
 
           const claimed = await tokenContract.tokenIdsClaimed(tokenId)
 
-          if(!claimed){
+          if (!claimed) {
             amount++
           }
         }
+        setTokensToBeClaimed(BigNumber.from(amount))
       }
-    }
-    catch(error){
+    } catch (error) {
       console.log(error)
-      setTokensMinted(zero)
+      setTokensToBeClaimed(zero) 
     }
   }
 
@@ -164,19 +166,18 @@ const Home = (): JSX.Element => {
         provider
       )
 
-      const signer  = await getProviderOrSigner(true)
+      const signer = await getProviderOrSigner(true)
       const address = signer.getAddress()
-      const balance = await tokenContract.balanceOf(address)  
-      setBalanceOfCurrent(balance) 
-
-    } catch(error){
+      const balance = await tokenContract.balanceOf(address)
+      setBalanceOfCurrent(balance)
+    } catch (error) {
       console.log(error)
     }
   }
 
   const getTotalTokensMinted = async () => {
     try {
-      const provider  = await getProviderOrSigner()
+      const provider = await getProviderOrSigner()
 
       const tokenContract = new Contract(
         NFT_CONTRACT_ADDRESS,
@@ -185,17 +186,14 @@ const Home = (): JSX.Element => {
       )
       const _tokensMinted = await tokenContract.totalSupply()
       setTokensMinted(_tokensMinted)
-
-
     } catch (error) {
       console.log(error)
     }
   }
 
   const mintCryptoToken = async (amount: any) => {
+    setLoading(true)
     try {
-
-      setLoading(true)
       const signer = await getProviderOrSigner(true)
       const tokenContract = new Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer)
       const value = 0.001 * amount
@@ -203,7 +201,6 @@ const Home = (): JSX.Element => {
         value: utils.parseEther(value.toString())
       })
       await txn.wait()
-      setLoading(false)
       toast.success(`Success fully minted ${amount} CryptoDev tokens`)
       await getBalanceOfCryptoDevTokens()
       await getTotalTokensMinted()
@@ -211,12 +208,12 @@ const Home = (): JSX.Element => {
     } catch (error) {
       console.log(error)
     }
+    setLoading(false)
   }
 
-
-  const claimCryptoDevTokens = async() => {
-    try{
-     const signer = await getProviderOrSigner(true)  
+  const claimCryptoDevTokens = async () => {
+    try {
+      const signer = await getProviderOrSigner(true)
 
       const tokenContract = new Contract(
         NFT_CONTRACT_ADDRESS,
@@ -229,72 +226,287 @@ const Home = (): JSX.Element => {
       await txn.wait()
       setLoading(false)
       toast.success('Successfully calimed CryptoDev Token')
-      
+
       await getBalanceOfCryptoDevTokens()
       await getTotalTokensMinted()
       await getTokensToBeClaimed()
-
-    }
-    catch(error){
+    } catch (error) {
       console.log(error)
     }
   }
 
+  const thisInputRef = useRef<HTMLInputElement>(null)
+
+  const handleAdd = () => {
+    setTokenAmount(BigNumber.from(1))
+  }
+
+  useEffect(() => {
+    if (thisInputRef.current) {
+      thisInputRef.current.value = tokenAmount.toNumber().toString()
+    }
+  }, [tokenAmount])
+
+  const handleMath = (minus = false) => {
+    let thisCurrent: number = tokenAmount.toNumber()
+    if (minus) {
+      if (thisCurrent === 0) return
+      thisCurrent--
+    } else {
+      thisCurrent++
+    }
+    setTokenAmount(BigNumber.from(thisCurrent))
+  }
+
+
+  const getOwner = async() =>{
+    try{
+      const provider = await getProviderOrSigner() 
+
+      const tokenContract = new Contract(
+        CONTRACT_ADDRESS,
+        CONTRACT_ABI,
+        provider)
+
+      const _owner = await tokenContract._owner()
+
+      const signer = await getProviderOrSigner(true)
+      
+      const _address = await signer.getAddress()
+      
+      if(_address.toLowerCase() === _owner.toLowerCase()){
+        setIsOwner(true)
+      }
+    }
+    catch(error){console.log(error)}
+  }
+
+  const withdrawCoins = async() =>{
+    setLoading(true)
+    try{
+      const signer = await getProviderOrSigner(true)
+      const tokenContract = new Contract(
+        CONTRACT_ADDRESS,
+        CONTRACT_ABI,
+        signer
+      )
+
+      const txn = await tokenContract.withdraw()
+      await txn.wait()
+      await getOwner()
+    } 
+    catch(error){console.log(error)}
+    setLoading(false)
+  }
+
+  const addButtonV: Variants = {
+    initial: { y: -100, opacity: 0 },
+    show: { y: 0, opacity: 1 },
+    exit: { y: 100, opacity: 0 }
+  }
+
+  const numV: Variants = {
+    initial: { y: 100, opacity: 0 },
+    show: { y: 0, opacity: 1 },
+    exit: { y: -100, opacity: 0 }
+  }
+
+  const parentV: Variants = {
+    initial: { opacity: 1 },
+
+    show: { opacity: 1 },
+
+    exit: { opacity: 1 }
+  }
+
+  const leftV: Variants = {
+    initial: { x: '-100%', opacity: 0 },
+    show: { x: 0, opacity: 1 },
+    exit: { x: '-100%', opacity: 0 }
+  }
+
+  const rightV: Variants = {
+    initial: { x: '100%', opacity: 0 },
+    show: { x: 0, opacity: 1 },
+    exit: { x: '100%', opacity: 0 }
+  }
+
   const renderButton = () => {
-    if(loading){
-      return(
+    if (loading) {
+      return (
         <div
-          style={{aspectRatio:'1'}}
-          className='
+          className="
           animate-spin
           bg-transparent
           rounded-full
           border-4 border-l-stone-700
-          h-[4vmin]
-          '
-          />
+          h-[4vmin] w-[4vmin]
+          "
+        />
       )
     }
 
-    if(tokensToBeClaimed > 0){
+    if(walletConnected && isOwner){
       return(
-      <div 
-         >
-          <p>
-            {tokensToBeClaimed*10} Tokens can be claimed!
-          </p>
+        <div>
           <button 
-            onClick={claimCryptoDevTokens}
-           className='thisButton mt-3'>
+            className='thisButton'
+            onClick={withdrawCoins}
+          >
+          Widthdraw Coins
+          </button>
+        </div>
+      )
+    }
+
+    if (tokensToBeClaimed > 0) {
+      return (
+        <div>
+          <p>{tokensToBeClaimed * 10} Tokens can be claimed!</p>
+          <button onClick={claimCryptoDevTokens} 
+            className="thisButton mt-3">
             Claim Tokens
           </button>
-      </div>
+        </div>
       )
     }
 
     return (
-      <div>
-        <input
-          type="number"
-          placeholder="Amount of Tokens"
-          onChange={e => setTokenAmount(BigNumber.from(e.target.value))}
-        />
-        <button
-        className={`
+      <div
+        className=" 
+        py-4
+        overflow-x-hidden
+        flex items-center justify-between
+        min-w-full "
+      >
+        <div
+          className="    
+          rounded-2xl
+          overflow-hidden
+          bg-sky-500
+          h-12
+          w-2/5
+          flex items-center justify-center
+          dark:bg-sky-800
+          shadow-[0_5px_15px_-7.5px_black]
+          "
+        >
+          <AnimatePresence exitBeforeEnter>
+            {tokenAmount.toNumber() === 0 ? (
+              <motion.div
+                key={tokenAmount.toNumber()}
+                variants={addButtonV}
+                transition={{ type: 'spring', damping: 15 }}
+                initial="initial"
+                animate="show"
+                exit="exit"
+                whileHover={{ scale: 1.05 }}
+                className="
+
+            cursor-pointer 
+            text-zinc-200
+            dark:text-zinc-400 
+            grid place-items-center
+              min-w-full min-h-full
+                "
+                onClick={() => {
+                  handleAdd()
+                }}
+              >
+                <span>Add Tokens</span>
+              </motion.div>
+            ) : (
+              <motion.div
+                variants={parentV}
+                initial="initial"
+                animate="show"
+                exit="exit"
+                className="
+
+                items-stretch
+                justify-between
+                min-h-full
+                flex min-w-full"
+              >
+                <motion.button
+                  variants={leftV}
+                  transition={{ type: 'spring', damping: 15 }}
+                  onClick={() => {
+                    handleMath(true)
+                  }}
+                  className="
+                  grid place-items-center
+                min-h-full
+                w-1/3
+                thisEffect
+                "
+                >
+                  <HiMinus />
+                </motion.button>
+
+                <motion.input
+                  transition={{ type: 'spring', damping: 15 }}
+                  variants={numV}
+                  ref={thisInputRef}
+                  type="number"
+                  className="          
+              text-zinc-200 dark:text-zinc-400
+              grow
+            text-center
+            outline-none
+          appearance-none     
+         bg-sky-500
+        dark:bg-sky-800
+            max-w-[25%] "
+                  placeholder="Amount of Tokens"
+                  defaultValue={1}
+                  min={0}
+                  onChange={e => setTokenAmount(BigNumber.from(e.target.value))}
+                />
+                <motion.button
+                  transition={{ type: 'spring', damping: 15 }}
+                  variants={rightV}
+                  onClick={() => {
+                    handleMath()
+                  }}
+                  className="
+                  grid place-items-center
+                min-h-full
+                w-1/3
+                thisEffect
+                "
+                >
+                  <HiPlus />
+                </motion.button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+        <AnimatePresence exitBeforeEnter>
+          {tokenAmount.toNumber() !== 0 ? (
+            <motion.button
+              variants={rightV}
+              initial="initial"
+              animate="show"
+              exit="exit"
+              className={`
         thisButton 
         ${!tokenAmount.gt(0) ? 'cursor-not-allowed' : ''}
         `}
-          disabled={!tokenAmount.gt(0)}
-          onClick={() => mintCryptoToken(tokenAmount)}
-        >
-          Mint Tokens
-        </button>
+              disabled={!tokenAmount.gt(0)}
+              onClick={() => mintCryptoToken(tokenAmount)}
+            >
+              Mint Tokens
+            </motion.button>
+          ) : null}
+        </AnimatePresence>
       </div>
     )
   }
   return (
     <div
       className="
+      overflow-hidden
       md:max-w-fit
       max-w-[90vmin] 
       p-[5vmin]
@@ -321,15 +533,16 @@ const Home = (): JSX.Element => {
           }
         }}
       />
-      <section className="
-
+      <section
+        className="
         p-[5vmin]
         rounded-2xl
         thisNeo
         min-h-[55vmin]
         grow
         gap-5
-        flex flex-col">
+        flex flex-col"
+      >
         <h1
           className="
           text-2xl
@@ -359,11 +572,12 @@ const Home = (): JSX.Element => {
         >
           {walletConnected ? (
             <div
-             className='
+              className="
+              min-w-full
               flex 
               gap-5
-              flex-col '
-             >
+              flex-col "
+            >
               <p>
                 You have minted{' '}
                 <span>{utils.formatEther(balanceOfCurrent)}</span> Crypto Dev
@@ -374,7 +588,7 @@ const Home = (): JSX.Element => {
                 <span> {utils.formatEther(tokensMinted)}</span>
                 /1000 have been minted.
               </p>
-            {renderButton()}
+              {renderButton()}
             </div>
           ) : (
             <button
@@ -383,44 +597,52 @@ const Home = (): JSX.Element => {
           "
               onClick={connectWallet}
             >
-               <BiPlug/> <span>Connect Wallet</span>
+              <BiPlug /> <span>Connect Wallet</span>
             </button>
           )}
         </div>
       </section>
-        <section
-        className='
+      <section
+        className="
         rounded-xl
         p-5
         relative
         grid place-items-center
         dark:brightness-90
-        min-w-[50vmin]'>
-          <motion.p 
-            style={{aspectRatio:'1'}}
-             className={`
+        min-w-[50vmin]"
+      >
+        <motion.p
+          style={{ aspectRatio: '1' }}
+          className={`
           transition-all ease duration-700 delay-500
 
-          ${!imageLoaded? 'opacity-100  ':'opacity-0 '}
+          ${!imageLoaded ? 'opacity-100  ' : 'opacity-0 '}
                 rounded-full
                 animate-spin
                 border-4 border-zinc-600 border-l-zinc-50
               h-[7vmin] absolute
           `}
-             />
-        <div 
-          className='min-w-full overflow-hidden'>
-        <Image
-          className={`
+        />
+        <div className="min-w-full overflow-hidden">
+          <Image
+            className={`
           transition-all ease-out-sine duration-1000 delay-1000
-          ${imageLoaded? 'opacity-100 blur-0 translate-y-0':' translate-y-full opacity-0 blur-md'}
+          ${
+            imageLoaded
+              ? 'opacity-100 blur-0 translate-y-0'
+              : ' translate-y-full opacity-0 blur-md'
+          }
           `}
-          onLoad={()=>{setImageLoaded(true)}}
-         layout='responsive' 
-          objectFit='contain'
-        alt='header'
-        height={100} width={100}
-        src={'/cryptodev.svg'}/> 
+            onLoad={() => {
+              setImageLoaded(true)
+            }}
+            layout="responsive"
+            objectFit="contain"
+            alt="header"
+            height={100}
+            width={100}
+            src={'/cryptodev.svg'}
+          />
         </div>
       </section>
     </div>
