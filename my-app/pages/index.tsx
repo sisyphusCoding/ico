@@ -25,16 +25,15 @@ import { Console } from 'console'
 import { get } from 'http'
 import { getMaxListeners } from 'process'
 const Home = (): JSX.Element => {
-
-  if(typeof window !== 'undefined'){
-  const provider = new ethers.providers.Web3Provider(window.ethereum, "any");
-    provider.on("network", (newNetwork, oldNetwork) => {
-        if (oldNetwork) {
-            window.location.reload();
-            console.log(oldNetwork,'oldNetwork')
-        }
-    })}
-
+  if (typeof window !== 'undefined') {
+    const provider = new ethers.providers.Web3Provider(window.ethereum, 'any')
+    provider.on('network', (newNetwork, oldNetwork) => {
+      if (oldNetwork) {
+        window.location.reload()
+        console.log(oldNetwork, 'oldNetwork')
+      }
+    })
+  }
 
   interface thisProvider extends providers.Web3Provider {
     getAddress(): Promise<string>
@@ -43,7 +42,6 @@ const Home = (): JSX.Element => {
   interface thisSigner extends providers.JsonRpcSigner {
     getAddress(): Promise<string>
   }
-
 
   const [imageLoaded, setImageLoaded] = useState<boolean>(false)
   if (typeof window !== 'undefined') {
@@ -71,8 +69,7 @@ const Home = (): JSX.Element => {
 
   const [tokensToBeClaimed, setTokensToBeClaimed] = useState<any>(zero)
 
-
-  const [isOwner,setIsOwner] = useState<boolean>(false)
+  const [isOwner, setIsOwner] = useState<boolean>(false)
 
   const web3ModalRef = useRef<Web3Modal>()
 
@@ -147,15 +144,15 @@ const Home = (): JSX.Element => {
         CONTRACT_ABI,
         provider
       )
-      console.log(balance.toNumber(),'h')
+      console.log(balance.toNumber(), 'h')
       if (balance === zero) {
         setTokensToBeClaimed(zero)
       } else {
         var amount = 0
 
         for (let i = 0; i < balance; i++) {
-          const tokenId = await nftContract.tokenOfOwnerByIndex(address, i) 
-          const claimed = await tokenContract.tokenIdsClaimed(tokenId)    
+          const tokenId = await nftContract.tokenOfOwnerByIndex(address, i)
+          const claimed = await tokenContract.tokenIdsClaimed(tokenId)
           if (!claimed) {
             amount++
           }
@@ -163,8 +160,8 @@ const Home = (): JSX.Element => {
         setTokensToBeClaimed(BigNumber.from(amount))
       }
     } catch (error) {
-      console.log(error,'from getTokensToBeClaimed')
-      setTokensToBeClaimed(zero) 
+      console.log(error, 'from getTokensToBeClaimed')
+      setTokensToBeClaimed(zero)
     }
   }
 
@@ -223,17 +220,12 @@ const Home = (): JSX.Element => {
   }
 
   const claimCryptoDevTokens = async () => {
-
     setLoading(true)
 
     try {
       const signer = await getProviderOrSigner(true)
 
-      const tokenContract = new Contract(
-        CONTRACT_ADDRESS,
-        CONTRACT_ABI,
-        signer
-      )
+      const tokenContract = new Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer)
 
       const txn = await tokenContract.claim()
 
@@ -244,7 +236,6 @@ const Home = (): JSX.Element => {
       await getBalanceOfCryptoDevTokens()
       await getTotalTokensMinted()
       await getTokensToBeClaimed()
-
     } catch (error) {
       console.log(error)
     }
@@ -275,43 +266,41 @@ const Home = (): JSX.Element => {
     setTokenAmount(BigNumber.from(thisCurrent))
   }
 
-
-  const getOwner = async() =>{
-    try{
-      const provider = await getProviderOrSigner() 
+  const getOwner = async () => {
+    try {
+      const provider = await getProviderOrSigner()
 
       const tokenContract = new Contract(
         CONTRACT_ADDRESS,
         CONTRACT_ABI,
-        provider)
+        provider
+      )
 
       const _owner = await tokenContract.owner()
 
       const signer = await getProviderOrSigner(true)
-      
+
       const _address = await signer.getAddress()
-    
-      if(_address.toLowerCase() === _owner.toLowerCase()){
-      console.log(_address.toLowerCase(),_owner.toLowerCase())
+
+      if (_address.toLowerCase() === _owner.toLowerCase()) {
+        console.log(_address.toLowerCase(), _owner.toLowerCase())
         setIsOwner(true)
       }
+    } catch (error) {
+      console.log(error)
     }
-    catch(error){console.log(error)}
   }
 
-  const withdrawCoins = async() =>{
-    try{
+  const withdrawCoins = async () => {
+    try {
       const signer = await getProviderOrSigner(true)
-      const tokenContract = new Contract(
-        CONTRACT_ADDRESS,
-        CONTRACT_ABI,
-        signer
-      )
+      const tokenContract = new Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer)
       const txn = await tokenContract.withdraw()
       await txn.wait()
       await getOwner()
-    } 
-    catch(error){console.log(error)}
+    } catch (error) {
+      console.log(error)
+    }
   }
 
   const addButtonV: Variants = {
@@ -340,8 +329,6 @@ const Home = (): JSX.Element => {
     exit: { x: '-100%', opacity: 0 }
   }
 
-
-
   const rightV: Variants = {
     initial: { x: '100%', opacity: 0 },
     show: { x: 0, opacity: 1 },
@@ -357,7 +344,6 @@ const Home = (): JSX.Element => {
   const renderButton = () => {
     if (loading) {
       return (
-
         <div
           className="
           animate-spin
@@ -370,13 +356,10 @@ const Home = (): JSX.Element => {
       )
     }
 
-    if(walletConnected && isOwner){
-      return(
+    if (walletConnected && isOwner) {
+      return (
         <div>
-          <button 
-            className='thisButton'
-            onClick={withdrawCoins}
-          >
+          <button className="thisButton" onClick={withdrawCoins}>
             Widthdraw Coins
           </button>
         </div>
@@ -387,8 +370,7 @@ const Home = (): JSX.Element => {
       return (
         <div>
           <p>{tokensToBeClaimed * 10} Tokens can be claimed!</p>
-          <button onClick={claimCryptoDevTokens} 
-            className="thisButton mt-3">
+          <button onClick={claimCryptoDevTokens} className="thisButton mt-3">
             Claim Tokens
           </button>
         </div>
@@ -471,7 +453,7 @@ const Home = (): JSX.Element => {
                 </motion.button>
                 <motion.input
                   variants={numV}
-                  transition={{ type: 'spring', damping: 15, stiffness:100 }}
+                  transition={{ type: 'spring', damping: 15, stiffness: 100 }}
                   ref={thisInputRef}
                   type="number"
                   className="          
@@ -516,13 +498,13 @@ const Home = (): JSX.Element => {
               initial="initial"
               animate="show"
               exit="exit"
-              transition={{type:'spring',damping:40}}
+              transition={{ type: 'spring', damping: 40 }}
               className={`
               mr-5
               thisButton 
             ${!tokenAmount.gt(0) ? 'cursor-not-allowed' : ''}
         `}
-             onClick={() => mintCryptoToken(tokenAmount)}
+              onClick={() => mintCryptoToken(tokenAmount)}
             >
               Mint Tokens
             </motion.button>
