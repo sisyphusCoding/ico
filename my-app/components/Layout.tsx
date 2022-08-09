@@ -1,4 +1,3 @@
-import { NextPage } from 'next'
 import { FC, ReactNode } from 'react'
 import ThemeSwitch from './ThemeSwitch'
 import Head from 'next/head'
