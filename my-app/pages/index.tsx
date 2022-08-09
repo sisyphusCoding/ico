@@ -44,7 +44,6 @@ const Home = (): JSX.Element => {
     getAddress(): Promise<string>
   }
 
-  const [network, setNetwork] = useState('')
 
   const [imageLoaded, setImageLoaded] = useState<boolean>(false)
   if (typeof window !== 'undefined') {
