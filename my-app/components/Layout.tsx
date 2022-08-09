@@ -1,11 +1,12 @@
-import { FC, ReactNode } from 'react'
+import {ReactNode } from 'react'
 import ThemeSwitch from './ThemeSwitch'
 import Head from 'next/head'
+import { NextPage } from 'next'
 
 interface layoutProps {
   children: ReactNode
 }
-const Layout:FC<layoutProps> = ({ children }) => {
+const Layout:NextPage<layoutProps> = ({ children }) => {
   return (
     <main
       className="
