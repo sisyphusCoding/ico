@@ -10,75 +10,78 @@ import './ICryptoDev.sol';
 
 
 
-contract CryptoDevToken is ERC20 , Ownable {
+contract CryptoDevToken is ERC20 , Ownable  {
+
+    uint256 public constant tokenPrice = 0.001 ether;
+
+    uint256 public constant tokensPerNFT = 10 * 10**18;
+
+    uint256 public constant maxTotalSupply = 10000*10**18;
+
+    ICryptoDev CryptoDevsNFT;
+      
+    mapping (uint256 => bool) public tokenIdsClaimed;
 
 
-  uint256 public constant tokenPrice = 0.001 ether;
+    constructor(address _cryptoDevsContract) ERC20('Crypto Dev Token' ,'CD'){
+      CryptoDevsNFT = ICryptoDev(_cryptoDevsContract);
+    }
 
-  uint256 public constant tokensPerNFT = 10 * 10**18;
+
+    function mint(uint256 amount) public payable{
+      uint256 _requiredAmount = tokenPrice * amount;
+
+      require(msg.value>=_requiredAmount,'Ether sent is incorrect');
+
+      uint256 amountWithDecimals = amount * 10 ** 18;
+
+      require(
+        (totalSupply()+amountWithDecimals) <= maxTotalSupply, 
+        'Exceeds the mas total supply'
+      );
+
+      _mint(msg.sender,amountWithDecimals);
+    }
+
+
+    function claim() public{
+      address sender = msg.sender;
+
+     uint256 balance = CryptoDevsNFT.balanceOf(sender);
+      
+     require(balance >0,"You don't Own any CryptoDevs NFT");
     
-  uint256 public constant maxTotalSupply = 10000 * 10**18;
 
-  mapping (uint256 => bool) tokenIdsClaimed;
-
-  ICryptoDev CryptoDevsNFT;
-
-  constructor(address _cryptoDevsContract) ERC20('Crypt Dev Token' , 'CD') {
-    CryptoDevsNFT = ICryptoDev(_cryptoDevsContract);
-  }
-
-  
-
-  function mint(uint256 amount) public payable{
-
-    uint256 _requiredAmount = tokenPrice * amount;
-
-    require( msg.value >= _requiredAmount,'Ether sent is scant');
-   
-    uint256 amountWithDecimals = amount * 10**18;
-
-    require((
-      totalSupply() + amountWithDecimals) <= maxTotalSupply,
-      "Exceeded the maximum total supply"
-    );
-
-    _mint(msg.sender , amountWithDecimals);
-
-  }
-
-  function claim() public {
-
-    address sender = msg.sender;
-
-    uint256 balance = CryptoDevsNFT.balanceOf(sender);
-
-    require(balance > 0 , "You don't own any CryptoDevNFT's ");
-    
     uint256 amount = 0;
 
-    for(uint256 i = 0; i < balance; i++){
-    uint256 tokenId = CryptoDevsNFT.tokenOwnerByIndex(sender, i);
+    for(uint256 i = 0 ; i < balance ; i++ ){
+        
+      uint256 tokenId = CryptoDevsNFT.tokenOfOwnerByIndex(sender, i);
 
       if(!tokenIdsClaimed[tokenId]){
-          amount +=1;
-          tokenIdsClaimed[tokenId] = true;
+        amount += 1;
+        tokenIdsClaimed[tokenId] = true;
       }
-    }    
-  }
+    }
+
+    require(amount>0,'You have already claimed all the tokens');
+
+    _mint(msg.sender , amount*tokensPerNFT);
 
 
-  function withdraw() public onlyOwner {
-    address _owner = owner();
-    uint256 amount = address(this).balance;
-    (bool sent , ) = _owner.call{value:amount}('');
-    require(sent,'Failed to sedn Ether');
-  }
+    }
 
 
-  receive() external payable{}
+    function withdraw() public onlyOwner {
+      address _owner = owner();
+      uint256 amount = address(this).balance;
+      (bool sent,) = _owner.call{value:amount}("");
+      require(sent,'Failed to send Ether');
+    }
 
-  fallback() external payable{}
+    receive() external payable{}
 
+    fallback() external payable{}
 
 
 }

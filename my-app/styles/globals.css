@@ -22,10 +22,10 @@ a {
 
 .thisButton{
   @apply 
-  text-xs 
   text-zinc-200
   dark:text-zinc-400 
   md:text-base
+  text-xs 
   py-3
   px-5
   rounded-xl
@@ -77,6 +77,12 @@ input[type=number] {
 
 .thisEffect{
   @apply relative z-[1]
+  overflow-hidden
+  md:text-base
+  text-xs 
+  py-3
+  px-5
+  rounded-xl
   shadow-[0_5px_15px_-7.5px_black]
   text-zinc-200
   dark:text-zinc-400 

@@ -16,6 +16,11 @@ const ThemeSwitch = (): JSX.Element => {
     }
   }, [])
 
+  useEffect(()=>{
+    //avoid to much motion , after button is triggered 
+    setIsOn(false)
+  },[dark])
+
   useEffect(() => {
     if (dark) {
       document.documentElement.classList.add('dark')
@@ -32,14 +37,12 @@ const ThemeSwitch = (): JSX.Element => {
         setDark(!dark)
       }}
       animate={{ rotateX: dark ? 180 : 0 }}
-      transition={{type:'spring',damping:10,stiffness:100}}
+      transition={{type:'spring',damping:25,stiffness:100}}
       style={{
         transformStyle: 'preserve-3d'
       }}
 
-
-      onMouseEnter={()=>{setIsOn(true)}}
-      
+      onMouseEnter={()=>{setIsOn(true)}}      
       onMouseLeave={()=>{setIsOn(false)}}
 
       className="
@@ -56,7 +59,7 @@ const ThemeSwitch = (): JSX.Element => {
     >
       <div 
         style={{
-          transform: `perspective(100rem) rotateY(0) rotateZ(${isOn? 360*2:0}deg)  translate3d(0,0,.8rem)`
+          transform: `perspective(100rem) rotateY(0) rotateZ(${isOn? 360/2:0}deg)  translate3d(0,0,.8rem)`
         }}
         className="
         absolute min-h-full flex items-center 

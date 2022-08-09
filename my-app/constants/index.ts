@@ -1,4 +1,4 @@
-export const CONTRACT_ADDRESS = '0x39255eE91D1ba65D8de4971481714a3BcD2a610b'
+export const CONTRACT_ADDRESS = '0xFe894d8b1E388b30548c4A19e9849922Cfa3d519'
 
 export const CONTRACT_ABI= [
     {
@@ -293,6 +293,25 @@ export const CONTRACT_ABI= [
       "type": "function"
     },
     {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "tokenIdsClaimed",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
       "inputs": [],
       "name": "tokenPrice",
       "outputs": [
@@ -408,7 +427,6 @@ export const CONTRACT_ABI= [
       "stateMutability": "payable",
       "type": "receive"
     }
-
 ]
 
 export const NFT_CONTRACT_ADDRESS = '0x0911Fd574A1c0E259C7AA3F175718DA62Bb5e7A6'
